@@ -1,17 +1,39 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Container, Header, Title, Content, Body, Text, Button, Icon } from 'native-base';
+import { Container, Header, Title, Content, Body, Text, Button, Icon, Left, Drawer, Right } from 'native-base';
+import SideBar from '../../components/SideBar/SideBar';
 export default class AccountPage extends Component {
+
+  closeDrawer = () => {
+    this.drawer._root.close()
+  };
+  openDrawer = () => {
+    this.drawer._root.open()
+  }; 
 
   render() {
     return (      
+      <Drawer
+      ref={(ref) => { this.drawer = ref; }}
+      content={<SideBar />}
+      onClose={() => this.closeDrawer()} >
       <Container>
         <Header
           androidStatusBarColor="#22a6b3" 
           style={{ backgroundColor: "#22a6b3" }}>
+          <Left style={{flex: 1}}>
+          <Button
+          transparent 
+          style={{ backgroundColor: '#22a6b3'}}
+          onPress={() => this.openDrawer()}
+          >
+          <Icon style={{fontSize: 40}} name='menu'/>
+          </Button>
+          </Left>
           <Body style={styles.header}>
-            <Title>My Account</Title>
+            <Title style={{fontSize: 22}}>My Account</Title>
           </Body>
+          <Right />
         </Header>
         <Content contentContainerStyle={styles.mainBody}>
           <View>
@@ -35,24 +57,17 @@ export default class AccountPage extends Component {
                 My Vehicles
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.buttons} >
-              <Icon 
-                style={styles.icons}
-                name="md-card" />
-              <Text>
-                Payment Method
-              </Text>
-            </TouchableOpacity>
           </View>
         </Content>
-      </Container>    
+      </Container>
+      </Drawer>    
     )
   }
 }
 
 const styles = StyleSheet.create({
   header: {
-    justifyContent: 'center',
+    // justifyContent: 'center',
     alignItems: 'center'
   },
   mainBody: {

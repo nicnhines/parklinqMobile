@@ -14,7 +14,7 @@ import LoginHome from './app/screens/Login/LoginHome';
 import Login from './app/screens/Login/Login';
 import Registration from './app/screens/Login/Registration';
 import MainMap from './app/screens/MainMap';
-import { DrawerNav, Tabs, LoginStackNav } from './app/config/router';
+import { DrawerNav, LoginStackNav } from './app/config/router';
 
 const DismissKeyboard = ({ children }) =>( 
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

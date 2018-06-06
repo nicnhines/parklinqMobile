@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TouchableHighlight, Platform, Alert } from 'react-native';
+import { StyleSheet, View, Text, TouchableHighlight, TouchableOpacity, Platform, Alert } from 'react-native';
 import  MapView, { Marker }  from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { Drawer, Icon } from 'native-base';
 import Modal from 'react-native-modal';
 
+import SideBar from '../../components/SideBar/SideBar';
 import googlePlacesKey from '../../config/apiKeys';
-
-const homePlace = { description: 'Home', geometry: { location: { lat: 48.8152937, lng: 2.4597668 } }};
-const workPlace = { description: 'Work', geometry: { location: { lat: 48.8496818, lng: 2.2940881 } }};
 
 const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = 0.01;
@@ -20,18 +19,24 @@ const initialRegion = {
 }
 
 export default class MainMap extends Component {
- map = null;
-  state={
-    modalVisible: false, 
-    region: {
-      latitude: 21.3069,
-      longitude: -157.8583,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    },
-    ready: true,
-    filteredMarkers: []
-  };
+  map = null;
+  constructor(props) {
+    super(props);
+    this.state={
+      modalVisible: false, 
+      mapRegion: null,
+      latitude: null,
+      longitude: null,
+      ready: true
+    };
+  }
+ 
+  // region: {
+  //   latitude: 21.3069,
+  //   longitude: -157.8583,
+  //   latitudeDelta: 0.0922,
+  //   longitudeDelta: 0.0421,
+  // },
 
   setModalVisible(visible) {
     this.setState({modalVisible: visible});
@@ -80,26 +85,50 @@ export default class MainMap extends Component {
     };
   }
   
-  onRegionChange(region) {
+  onRegionChange(region, latitude, longitude ) {
     console.log('onRegionChange', region)
+    this.setState ({
+      mapRegion: region,
+      latitude: latitude || this.state.latitude,
+      longitude: longitude || this.state.longitude
+    });
   }
 
   onRegionChangeComplete = (region) => {
     console.log('onRegionChangeComplete', region)
   }
 
+  closeDrawer = () => {
+    this.drawer._root.close()
+  };
+  openDrawer = () => {
+    this.drawer._root.open()
+  }; 
+
   render() {
     const {region} = this.state;
     const {children, renderMarker, markers} = this.props;MapView
     return (
+            <Drawer
+        ref={(ref) => { this.drawer = ref; }}
+        content={<SideBar />}
+        onClose={() => this.closeDrawer()} >
       <View style={styles.container}>
-        <View style={styles.searchButton}>
-          <TouchableHighlight
+        <View style={styles.searchBar}>
+        <TouchableOpacity 
+          style={styles.drawerButton}
+          onPress={() => this.openDrawer()}
+          >
+          <Icon style={styles.tabText} name='menu'/>
+          </TouchableOpacity>
+          <TouchableOpacity
+
+          style={styles.searchButton}
             onPress={() => {
               this.setModalVisible(true);
           }}>
-            <Text>Current Location</Text>
-          </TouchableHighlight>
+            <Text>Search</Text>
+          </TouchableOpacity>
         </View>
           <Modal
             isVisible={this.state.modalVisible}
@@ -112,23 +141,30 @@ export default class MainMap extends Component {
                 autoFocus={false}
                 returnKeyType={'search'} 
                 listViewDisplayed='auto' 
-                // fetchDetails={true}
+                fetchDetails={true}
                 //renderDescription={row => row.description} 
-                onPress={(data, details = null) => { 
-                  console.log(data, details);
-                }}
                 getDefaultValue={() => ''}
                 query={{
                   // available options: https://developers.google.com/places/web-service/autocomplete
                   key: 'AIzaSyBpDEjIY5zXibnvhk3rbMno4WE3UdPxAlw',
-                  language: 'en', // language of the results
+                  language: 'en', 
                   components: 'country:us'
-                  // types: '(cities)' // default: 'geocode'
+                }}
+                currentLocation={false} 
+                // currentLocationLabel="CL"
+                onPress={(data, details = null) => { 
+                  console.log(data, details);
+                  const region = {
+                    latitude: details.geometry.location.lat,
+                    longitude: details.geometry.location.lng,
+                    latitudeDelta: 0.00922 * 1.5,
+                    longitudeDelta: 0.00421 * 1.5
+                  };
+                  this.onRegionChange(region, region.latitude, region.longitude);
                 }}
                 styles={{
                   textInputContainer: {
                     width: '100%',
-                    marginBottom: 10,
                   },
                   description: {
                     fontWeight: 'bold'
@@ -140,11 +176,8 @@ export default class MainMap extends Component {
                     zIndex: 16,
                     position: 'absolute',
                     margin: 10,
-                    color: 'white'
                   }
                 }} 
-                currentLocation={true} // Will add a 'Current loregioncation' button at the top of the predefined places list
-                // currentLocationLabel="CL"
                 nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
                 GoogleReverseGeocodingQuery={{
                 // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
@@ -155,7 +188,7 @@ export default class MainMap extends Component {
                   types: 'food'
                 }}
                 filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
-                predefinedPlaces={[homePlace, workPlace]}
+                // predefinedPlaces={[homePlace, workPlace]}
                 debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
                 renderRightButton={() => <Text onPress={() => { this.setModalVisible(!this.state.modalVisible)}}>X</Text>}
               />
@@ -167,13 +200,26 @@ export default class MainMap extends Component {
           style={styles.map}
           data={markers}
           initialRegion={initialRegion}
-          onRegionChange={() => this.onRegionChange.bind(this)}
-          onRegionChangeComplete={this.onRegionChangeComplete}
-          renderMarker={renderMarker}
+          onRegionChange={(regions) => {
+            this.setState({
+              mapRegion: regions
+            });
+          }}
+          onPress = {(e) => {
+            const region = {
+              latitude: e.nativeEvent.coordinate.latitude,
+              longitude: e.nativeEvent.coordinate.longitude,
+              latitudeDelta: 0.00922 * 1.5,
+              longitudeDelta: 0.00421 * 1.5
+            }
+            this.onRegionChange (region, region.latitude, region.longitude);
+          }}
+          // onRegionChangeComplete={this.onRegionChangeComplete}
+          // renderMarker={renderMarker}
           onMapReady={this.onMapReady}
           showsMyLocationButton={false}
         >
-          <Marker
+          <MapView.Marker
             coordinate={{
               latitude: 21.2911,
               longitude: -157.8435
@@ -181,6 +227,7 @@ export default class MainMap extends Component {
             title="Ala Moana" />
         </MapView>
       </View>
+      </Drawer>
     );
   }
 }
@@ -203,9 +250,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: -1
   },
-  searchButton: {
+  searchBar: {
     flex: 1,
-    // justifyContent: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 510,
@@ -213,6 +261,12 @@ const styles = StyleSheet.create({
     width: 370,
     borderStyle: 'solid',
     backgroundColor: 'white'
+  },
+  drawerButton: {
+
+  },
+  searchButton: {
+    
   },
   modal: {
     // marginTop: -550,
