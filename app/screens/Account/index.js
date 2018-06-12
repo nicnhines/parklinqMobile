@@ -31,7 +31,7 @@ export default class AccountPage extends Component {
           </Button>
           </Left>
           <Body style={styles.header}>
-            <Title style={{fontSize: 22}}>My Account</Title>
+            <Title style={{fontSize: 19}}>My Account</Title>
           </Body>
           <Right />
         </Header>

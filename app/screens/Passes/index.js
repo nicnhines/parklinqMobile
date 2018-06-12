@@ -30,7 +30,7 @@ export default class PassesPage extends Component {
           </Button>
           </Left>
           <Body style={styles.header}>
-            <Title style={{fontSize: 22}}>Parking Passes</Title>
+            <Title style={{fontSize: 19}}>Parking Passes</Title>
           </Body>
           <Right />
         </Header>

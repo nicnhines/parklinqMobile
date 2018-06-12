@@ -17,9 +17,9 @@ const InnerStackNav = new StackNavigator({
 
 
 const DrawerNavigation = DrawerNavigator({
-  HomeScreenTabNavigator: { screen: InnerStackNav },
-  SellParkingPage: { screen: SellParkingPage },
-  HelpPage: { screen: HelpPage }
+  Home: { screen: InnerStackNav },
+  SellParking: { screen: SellParkingPage },
+  Help: { screen: HelpPage }
 },{
   contentComponent: props => <SideBar {...props} />
   }
